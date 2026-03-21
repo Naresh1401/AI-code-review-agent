@@ -1,5 +1,7 @@
 # AI Code Review Agent
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Render-10b981?style=for-the-badge&logo=render)](https://ai-code-review-agent-bon1.onrender.com) [![GitHub](https://img.shields.io/badge/GitHub-Naresh1401-181717?style=for-the-badge&logo=github)](https://github.com/Naresh1401/AI-code-review-agent)
+
 Automatically reviews GitHub Pull Requests for bugs, security vulnerabilities, performance issues, and style problems — posting inline comments directly on the PR.
 
 ## The Problem
