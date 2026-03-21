@@ -135,6 +135,16 @@ section[data-testid="stSidebar"] .stMarkdown { color: #d1d5db; }
     border-radius: 8px !important; color: #9ca3af !important;
 }
 .js-plotly-plot .plotly .main-svg { background: transparent !important; }
+
+/* Streamlit overrides */
+footer, #MainMenu, .stDeployButton, div[data-testid="stDecoration"] { display: none !important; }
+[data-testid="stAppViewContainer"] { background: transparent !important; }
+[data-testid="stHeader"] { background: transparent !important; }
+[data-testid="stSidebarContent"] { background: transparent !important; }
+[data-testid="stBottomBlockContainer"] { background: transparent !important; }
+div[data-testid="stMetricValue"] > div { color: #e2e8f0 !important; }
+div[data-testid="stMetricDelta"] { color: #9ca3af !important; }
+div[data-testid="stMetricLabel"] { color: #9ca3af !important; }
 </style>
 """, unsafe_allow_html=True)
 
