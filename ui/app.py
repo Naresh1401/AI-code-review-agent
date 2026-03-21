@@ -1,5 +1,6 @@
 """
 ui/app.py — Streamlit UI for AI Code Review Agent
+Premium glassmorphism design
 """
 import streamlit as st
 import requests
@@ -9,52 +10,166 @@ import plotly.express as px
 
 API_URL = "http://localhost:8000"
 
-st.set_page_config(page_title="AI Code Review", page_icon="🔍", layout="wide")
+st.set_page_config(page_title="AI Code Review Agent", page_icon="🔍", layout="wide")
 
+# ── Premium CSS ───────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-.critical { color:#dc3545; font-weight:bold; }
-.high     { color:#fd7e14; font-weight:bold; }
-.medium   { color:#ffc107; font-weight:bold; }
-.low      { color:#17a2b8; font-weight:bold; }
-.info     { color:#6c757d; }
-.comment-card {
-    background:#f8f9fa; border-radius:6px;
-    padding:12px 16px; margin:6px 0;
-    border-left:4px solid #dee2e6;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+.stApp {
+    background: linear-gradient(135deg, #0c1222 0%, #1a1f35 40%, #0d1b2a 100%);
 }
-.card-critical { border-left-color:#dc3545; }
-.card-high     { border-left-color:#fd7e14; }
-.card-medium   { border-left-color:#ffc107; }
-.card-low      { border-left-color:#17a2b8; }
+html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+.block-container { padding-top: 2rem; }
+header[data-testid="stHeader"] { background: transparent; }
+
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0c1222 0%, #0a0f1e 100%) !important;
+    border-right: 1px solid rgba(16,185,129,0.1);
+}
+section[data-testid="stSidebar"] .stMarkdown { color: #d1d5db; }
+
+.hero {
+    text-align: center; padding: 40px 20px 20px 20px;
+}
+.hero h1 {
+    font-size: 3rem; font-weight: 800;
+    background: linear-gradient(135deg, #10b981, #06b6d4, #8b5cf6);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 8px; letter-spacing: -1px;
+}
+.hero p { color: #9ca3af; font-size: 1.15rem; font-weight: 300; }
+
+.glass {
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(16,185,129,0.1);
+    border-radius: 16px; padding: 24px; margin: 12px 0; color: #d1d5db;
+}
+
 .score-badge {
-    font-size:3em; font-weight:bold; text-align:center;
-    padding:20px; border-radius:12px;
+    font-size: 3.5em; font-weight: 800; text-align: center;
+    padding: 24px; border-radius: 16px;
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.08);
 }
+
+.metric-glass {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(16,185,129,0.1);
+    border-radius: 14px; padding: 20px; text-align: center;
+}
+.metric-glass .value {
+    font-size: 2rem; font-weight: 700;
+    background: linear-gradient(135deg, #10b981, #06b6d4);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.metric-glass .label { color: #9ca3af; font-size: 0.85rem; margin-top: 4px; }
+
+.comment-card {
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px; padding: 16px 20px; margin: 8px 0;
+    border-left: 4px solid rgba(107,114,128,0.4);
+    color: #d1d5db; transition: transform 0.2s ease;
+    font-size: 0.95em;
+}
+.comment-card:hover { transform: translateX(4px); }
+.card-critical { border-left-color: #ef4444; background: rgba(239,68,68,0.04); }
+.card-high     { border-left-color: #f59e0b; background: rgba(245,158,11,0.04); }
+.card-medium   { border-left-color: #eab308; background: rgba(234,179,8,0.04); }
+.card-low      { border-left-color: #06b6d4; background: rgba(6,182,212,0.04); }
+
+.summary-box {
+    background: rgba(16,185,129,0.06);
+    border: 1px solid rgba(16,185,129,0.2);
+    border-radius: 12px; padding: 18px; color: #d1d5db;
+    line-height: 1.7;
+}
+
+.verdict-approved {
+    background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05));
+    border: 1px solid rgba(16,185,129,0.4);
+    border-radius: 14px; padding: 20px; text-align: center;
+    color: #34d399; font-size: 1.5rem; font-weight: 700;
+}
+.verdict-changes {
+    background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05));
+    border: 1px solid rgba(239,68,68,0.4);
+    border-radius: 14px; padding: 20px; text-align: center;
+    color: #fca5a5; font-size: 1.5rem; font-weight: 700;
+}
+
+/* Tabs */
+.stTabs [data-baseweb="tab-list"] {
+    background: rgba(255,255,255,0.02); border-radius: 12px; padding: 4px; gap: 4px;
+}
+.stTabs [data-baseweb="tab"] { border-radius: 8px; color: #9ca3af; font-weight: 500; }
+.stTabs [aria-selected="true"] {
+    background: rgba(16,185,129,0.15) !important; color: #6ee7b7 !important;
+}
+
+.stButton > button[kind="primary"] {
+    background: linear-gradient(135deg, #10b981, #06b6d4) !important;
+    border: none !important; border-radius: 10px !important;
+    color: #0c1222 !important; font-weight: 700 !important;
+    transition: all 0.3s ease !important;
+}
+.stButton > button[kind="primary"]:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(16,185,129,0.3) !important;
+}
+
+.stTextArea textarea, .stTextInput input {
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(16,185,129,0.12) !important;
+    border-radius: 10px !important; color: #d1d5db !important;
+    font-family: 'JetBrains Mono', monospace !important;
+}
+
+.streamlit-expanderHeader {
+    background: rgba(255,255,255,0.03) !important;
+    border-radius: 8px !important; color: #9ca3af !important;
+}
+.js-plotly-plot .plotly .main-svg { background: transparent !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# Sidebar
+# ── Hero ──────────────────────────────────────────────────────────────────
+st.markdown("""
+<div class="hero">
+    <h1>🔍 AI Code Review Agent</h1>
+    <p>Automated PR analysis — security vulnerabilities, bugs, best practices, with fix suggestions</p>
+</div>
+""", unsafe_allow_html=True)
+
+# ── Sidebar ───────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.title("🔍 AI Code Review")
-    st.caption("Automated PR review powered by LLM")
+    st.markdown("### 🔍 Review Stats")
+    st.caption("Automated code quality insights")
     st.divider()
     try:
         h = requests.get(f"{API_URL}/health", timeout=5).json()
         st.success("🟢 API Connected")
         s = requests.get(f"{API_URL}/stats", timeout=5).json()
-        st.metric("Reviews Done",     s.get("reviews", 0))
-        st.metric("Comments Posted",  s.get("comments_posted", 0))
-        st.metric("Avg Review Time",  f"{s.get('avg_ms', 0):.0f}ms")
-    except:
+        st.metric("Reviews Done",    s.get("reviews", 0))
+        st.metric("Comments Posted", s.get("comments_posted", 0))
+        st.metric("Avg Review Time", f"{s.get('avg_ms', 0):.0f}ms")
+    except Exception:
         st.error("🔴 API Offline — run: make run")
         st.stop()
+    st.divider()
+    st.caption("Built with OpenAI · FastAPI · Streamlit")
 
-tab_review, tab_examples = st.tabs(["📝 Review Code", "📚 Examples"])
+tab_review, tab_examples = st.tabs(["📝 Review Code", "📚 Example Vulnerabilities"])
 
 # ── REVIEW TAB ────────────────────────────────────────────────────────────
 with tab_review:
-    st.header("Submit Code for Review")
+    st.markdown('<div class="glass">', unsafe_allow_html=True)
+    st.markdown("#### Submit Code for Review")
 
     col1, col2 = st.columns([2, 1])
     with col1:
@@ -67,7 +182,7 @@ with tab_review:
 
     diff_input = st.text_area(
         "Code Diff (paste your git diff or just the new code)",
-        height=300,
+        height=280,
         placeholder="""+ def login(user, password):
 +     query = f"SELECT * FROM users WHERE user={user}"
 +     db.execute(query)
@@ -77,6 +192,7 @@ with tab_review:
 + def get_all_users():
 +     return db.execute("SELECT * FROM users")""",
     )
+    st.markdown('</div>', unsafe_allow_html=True)
 
     if st.button("🔍 Review Code", type="primary", use_container_width=True):
         if not diff_input.strip():
@@ -93,60 +209,66 @@ with tab_review:
             if resp.ok:
                 r = resp.json()
 
-                # Score
                 score = r.get("overall_score", 0)
-                color = "#28a745" if score >= 80 else "#fd7e14" if score >= 60 else "#dc3545"
-                verdict = "✅ APPROVED" if r.get("approved") else "❌ CHANGES REQUESTED"
+                color = "#10b981" if score >= 80 else "#f59e0b" if score >= 60 else "#ef4444"
 
                 col_s, col_v, col_t = st.columns(3)
                 with col_s:
                     st.markdown(
-                        f'<div class="score-badge" style="color:{color};background:#f8f9fa">'
-                        f'{score}/100</div>', unsafe_allow_html=True
+                        f'<div class="score-badge" style="color:{color}">'
+                        f'{score}/100</div>',
+                        unsafe_allow_html=True
                     )
                 with col_v:
-                    st.markdown(f"### Verdict\n{verdict}")
+                    if r.get("approved"):
+                        st.markdown('<div class="verdict-approved">✅ APPROVED</div>',
+                                    unsafe_allow_html=True)
+                    else:
+                        st.markdown('<div class="verdict-changes">❌ CHANGES REQUESTED</div>',
+                                    unsafe_allow_html=True)
                 with col_t:
                     counts = r.get("comment_counts", {})
-                    st.markdown(f"""### Issues Found
-🔴 Critical: **{counts.get('critical',0)}**  
-🟠 High: **{counts.get('high',0)}**  
-🟡 Medium: **{counts.get('medium',0)}**  
-🔵 Low: **{counts.get('low',0)}**""")
+                    st.markdown(
+                        f'<div class="metric-glass">'
+                        f'<div style="text-align:left;color:#d1d5db;font-size:0.95rem">'
+                        f'🔴 Critical: <b>{counts.get("critical", 0)}</b><br>'
+                        f'🟠 High: <b>{counts.get("high", 0)}</b><br>'
+                        f'🟡 Medium: <b>{counts.get("medium", 0)}</b><br>'
+                        f'🔵 Low: <b>{counts.get("low", 0)}</b>'
+                        f'</div></div>',
+                        unsafe_allow_html=True
+                    )
 
-                # Summary
-                st.markdown("### Summary")
-                st.info(r.get("summary","").replace("❌","").replace("✅","").replace("⚠️","").strip())
+                st.markdown("#### Summary")
+                summary_text = r.get("summary", "").replace("❌", "").replace("✅", "").replace("⚠️", "").strip()
+                st.markdown(f'<div class="summary-box">{summary_text}</div>', unsafe_allow_html=True)
 
-                # Comments
                 comments = r.get("comments", [])
                 if comments:
-                    st.markdown(f"### Review Comments ({len(comments)})")
+                    st.markdown(f"#### Review Comments ({len(comments)})")
 
-                    # Severity filter
-                    severities   = list({c["severity"] for c in comments})
-                    show_sevs    = st.multiselect("Filter by severity", severities, default=severities)
-                    filtered     = [c for c in comments if c["severity"] in show_sevs]
+                    severities = list({c["severity"] for c in comments})
+                    show_sevs = st.multiselect("Filter by severity", severities, default=severities)
+                    filtered = [c for c in comments if c["severity"] in show_sevs]
 
                     for c in filtered:
-                        sev   = c["severity"]
-                        cat   = c["category"]
-                        cls   = f"card-{sev}"
-                        sev_cls = sev
-                        icons = {"critical":"🔴","high":"🟠","medium":"🟡","low":"🔵","info":"ℹ️"}
-                        icon  = icons.get(sev, "💬")
+                        sev = c["severity"]
+                        cat = c["category"]
+                        cls = f"card-{sev}"
+                        icons = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🔵", "info": "ℹ️"}
+                        icon = icons.get(sev, "💬")
+                        suggestion_html = f'<br><i style="color:#6ee7b7">💡 {c["suggestion"]}</i>' if c.get("suggestion") else ""
+                        code_fix_html = f'<br><pre style="margin:6px 0 0 0;font-size:0.85em;color:#10b981;background:rgba(16,185,129,0.06);padding:8px;border-radius:6px">{c["code_fix"]}</pre>' if c.get("code_fix") else ""
                         st.markdown(
                             f'<div class="comment-card {cls}">'
                             f'<b>{icon} [{sev.upper()}] {cat.title()}</b> — '
-                            f'<code>{c["file"]}:{c["line"]}</code><br>'
+                            f'<code style="color:#06b6d4">{c["file"]}:{c["line"]}</code><br>'
                             f'{c["message"]}'
-                            + (f'<br><i>💡 {c["suggestion"]}</i>' if c.get("suggestion") else "")
-                            + (f'<br><pre style="margin:4px 0 0 0;font-size:0.85em">{c["code_fix"]}</pre>' if c.get("code_fix") else "")
-                            + '</div>',
+                            f'{suggestion_html}{code_fix_html}'
+                            f'</div>',
                             unsafe_allow_html=True
                         )
 
-                    # Chart
                     if len(comments) > 1:
                         cat_counts = {}
                         for c in comments:
@@ -154,9 +276,15 @@ with tab_review:
                         fig = px.bar(
                             x=list(cat_counts.keys()), y=list(cat_counts.values()),
                             labels={"x": "Category", "y": "Count"},
-                            title="Issues by Category", height=250,
+                            title="Issues by Category", height=280,
                             color=list(cat_counts.values()),
-                            color_continuous_scale="RdYlGn_r",
+                            color_continuous_scale="Tealgrn_r",
+                        )
+                        fig.update_layout(
+                            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                            font=dict(color="#9ca3af"),
+                            xaxis=dict(gridcolor="rgba(255,255,255,0.05)"),
+                            yaxis=dict(gridcolor="rgba(255,255,255,0.05)"),
                         )
                         fig.update_coloraxes(showscale=False)
                         st.plotly_chart(fig, use_container_width=True)
@@ -170,8 +298,10 @@ with tab_review:
 
 # ── EXAMPLES TAB ─────────────────────────────────────────────────────────
 with tab_examples:
-    st.header("Example Code to Review")
-    st.info("Copy any example into the Review tab to see it in action.")
+    st.markdown('<div class="glass">', unsafe_allow_html=True)
+    st.markdown("#### 📚 Example Vulnerable Code")
+    st.caption("Copy any example into the Review tab to see it analyzed")
+    st.markdown('</div>', unsafe_allow_html=True)
 
     examples = {
         "🔴 SQL Injection": {
