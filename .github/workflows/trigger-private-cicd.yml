@@ -1,0 +1,25 @@
+name: Trigger Private CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger private pipeline repo
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.CICD_REPO_TOKEN }}
+          repository: Naresh1401/ai-cicd-private
+          event-type: app-update
+          client-payload: |
+            {
+              "ref": "${{ github.ref_name }}",
+              "sha": "${{ github.sha }}",
+              "repo": "${{ github.repository }}",
+              "branch": "${{ github.ref_name }}"
+            }
