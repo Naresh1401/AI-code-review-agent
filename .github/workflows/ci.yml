@@ -20,6 +20,7 @@ jobs:
     name: Python
     uses: Naresh1401/github-cicd-workflows/.github/workflows/python-ci.yml@v1
     with:
+      install-command: python -m pip install -r requirements.txt pytest
       # The unit tests, then the API smoke test the old workflow ran
       test-command: |
         python -m pytest -q
